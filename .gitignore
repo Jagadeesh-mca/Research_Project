@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.venv/
+venv/
+.env
+.idea/
+.vscode/
+.DS_Store
+*.joblib
+*.pkl
+*.h5
+*.model
+*.log
