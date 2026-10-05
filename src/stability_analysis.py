@@ -106,19 +106,26 @@ def bootstrap_ranking_stability(X_train, y_train, feature_cols, n_bootstraps=5,
 
 
 def summarise_bootstrap_stability(rankings, top_k=8):
-    """Jaccard overlap of top-k feature sets + Spearman corr of full ranks, pairwise."""
-    top_sets = [set(r.head(top_k).index) for r in rankings]
-    jaccards, spearmans = [], []
+    """Jaccard overlap of top-k and top-5 feature sets + Spearman corr of full ranks, pairwise."""
+    top_sets_8 = [set(r.head(top_k).index) for r in rankings]
+    top_sets_5 = [set(r.head(5).index) for r in rankings]
+    jaccards_8, jaccards_5, spearmans = [], [], []
     for i in range(len(rankings)):
         for j in range(i + 1, len(rankings)):
-            inter = len(top_sets[i] & top_sets[j])
-            union = len(top_sets[i] | top_sets[j])
-            jaccards.append(inter / max(union, 1))
+            inter_8 = len(top_sets_8[i] & top_sets_8[j])
+            union_8 = len(top_sets_8[i] | top_sets_8[j])
+            jaccards_8.append(inter_8 / max(union_8, 1))
+
+            inter_5 = len(top_sets_5[i] & top_sets_5[j])
+            union_5 = len(top_sets_5[i] | top_sets_5[j])
+            jaccards_5.append(inter_5 / max(union_5, 1))
+
             common = rankings[i].index
             rho, _ = spearmanr(rankings[i][common], rankings[j].reindex(common))
             spearmans.append(rho)
     return {
-        "mean_jaccard_top8": float(np.mean(jaccards)) if jaccards else 1.0,
+        "mean_jaccard_top8": float(np.mean(jaccards_8)) if jaccards_8 else 1.0,
+        "mean_jaccard_top5": float(np.mean(jaccards_5)) if jaccards_5 else 1.0,
         "mean_spearman_full_ranking": float(np.mean(spearmans)) if spearmans else 1.0,
     }
 

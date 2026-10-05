@@ -23,7 +23,7 @@ Email: vishal.research@ieee.org}}
 \maketitle
 
 \begin{abstract}
-The rapid proliferation of enterprise cloud environments has greatly expanded the attack surface for distributed, high-speed cyber threats including automated brute-force attacks, botnets, and denial-of-service intrusions. Although machine learning (ML) based Network Intrusion Detection Systems (NIDS) exhibit superior anomaly detection over conventional signature-based architectures, their deployment in Security Operations Centers (SOCs) is fundamentally hindered by the black-box dilemma, high false-positive rates, excessive feature dimensionality, and computational overhead. While recent studies---notably the baseline work of Muzibuddin et al. (IJERT 2026)---have established the efficacy of combining Random Forest with SHAP (SHapley Additive exPlanations) on legacy network benchmarks, existing XAI-IDS literature largely ignores explanation stability, root-cause false-positive causality, and systematic feature distillation for high-speed cloud infrastructures. In this paper, we propose a comprehensive, stability-aware, and lightweight explainable intrusion detection framework specifically engineered for cloud security using the CSE-CIC-IDS2018 benchmark. Our framework incorporates automated data cleaning, zero-variance feature elimination, multicollinearity filtering ($|r| > 0.90$), and an ensemble Random Forest classifier. We formulate rigorous quantitative metrics for explanation robustness, evaluating local neighbour consistency via Spearman rank correlation ($\rho$) and Cosine similarity, as well as global ranking stability across bootstrap re-trainings. Furthermore, we leverage SHAP to isolate the exact traffic flow characteristics driving false-positive alarms and near-boundary risks, and distill the full 38-feature model into an ultra-lightweight 8-feature detector. Extensive empirical evaluations over 100,000 real cloud network flows demonstrate that our proposed lightweight model retains 100\% F1-score and ROC-AUC while accelerating inference latency to 0.0019 ms per 1,000 flows (a throughput exceeding 527,000 flows/sec). Explanation stability tests reveal near-perfect local consistency ($\rho = 0.9985$, Cosine $= 1.0$) and high bootstrap ranking stability ($\mathcal{J} = 1.0$). We also present an interactive SOC analyst dashboard operationalizing local waterfall explanations, providing a verifiable, compliant, and real-time cybersecurity defense framework.
+The rapid proliferation of enterprise cloud environments has greatly expanded the attack surface for distributed, high-speed cyber threats including automated brute-force attacks, botnets, and denial-of-service intrusions. Although machine learning (ML) based Network Intrusion Detection Systems (NIDS) exhibit superior anomaly detection over conventional signature-based architectures, their deployment in Security Operations Centers (SOCs) is fundamentally hindered by the black-box dilemma, high false-positive rates, excessive feature dimensionality, and computational overhead. While recent studies---notably the baseline work of Muzibuddin et al. (IJERT 2026)---have established the efficacy of combining Random Forest with SHAP (SHapley Additive exPlanations) on legacy network benchmarks, existing XAI-IDS literature largely ignores explanation stability, root-cause false-positive causality, and systematic feature distillation for high-speed cloud infrastructures. In this paper, we propose a comprehensive, stability-aware, and lightweight explainable intrusion detection framework specifically engineered for cloud security using the CSE-CIC-IDS2018 benchmark. Our framework incorporates automated data cleaning, zero-variance feature elimination, multicollinearity filtering ($|r| > 0.90$), and an ensemble Random Forest classifier. We formulate rigorous quantitative metrics for explanation robustness, evaluating local neighbour consistency via Spearman rank correlation ($\rho$) and Cosine similarity, as well as global ranking stability across bootstrap re-trainings. Furthermore, we leverage SHAP strictly computed on training partitions to isolate the exact traffic flow characteristics driving predictions, and distill the full 40-feature model into an ultra-lightweight 8-feature detector. Extensive empirical evaluations over 100,000 real cloud network flows demonstrate that our proposed framework retains 100\% F1-score and ROC-AUC while operating at an inference latency of 0.0022~ms per flow (approximately 2.16~ms per 1,000 flows), with a full-model throughput of 462,348 flows/sec. Explanation stability tests reveal high local consistency (median $\rho = 1.0000$, mean $\rho = 0.9738$, Cosine $= 0.9974$) and empirical bootstrap ranking stability ($\mathcal{J} = 0.5515$ for Top-8, $\mathcal{J} = 0.7778$ for Top-5). We also present an interactive SOC analyst dashboard operationalizing local waterfall explanations, providing a verifiable, compliant, and real-time cybersecurity defense framework.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -48,11 +48,11 @@ Recently, Muzibuddin et al.\cite{muzibuddin2026explainable} proposed an explaina
 \subsection{Contributions of this Work}
 Addressing the future research directions and gaps identified in prior work, this paper presents a stability-aware and lightweight explainable intrusion detection framework evaluated on the CSE-CIC-IDS2018 cloud dataset. Our primary contributions are:
 \begin{itemize}
-    \item \textbf{Full-Fledged Cloud Pipeline:} Automated cleaning, zero-variance feature elimination, and correlation filtering ($|r| > 0.90$), reducing the 78-feature space to 38 non-collinear predictors.
+    \item \textbf{Full-Fledged Cloud Pipeline:} Automated cleaning, zero-variance feature elimination, and correlation filtering ($|r| > 0.90$), reducing the 78-feature space to 40 non-collinear predictors.
     \item \textbf{Multi-Model Baseline Benchmarking:} Rigorous comparison against Logistic Regression, Decision Trees, and Extra Trees, demonstrating ensemble superiority.
-    \item \textbf{Rigorous Explanation Stability Assessment:} Formulation of local neighbour consistency ($\rho = 0.9985$, Cosine $= 1.0$) and bootstrap retraining stability ($\mathcal{J} = 1.0$).
+    \item \textbf{Rigorous Explanation Stability Assessment:} Formulation of local neighbour consistency (median $\rho = 1.0000$, mean $\rho = 0.9738$, Cosine $= 0.9974$) and bootstrap retraining stability ($\mathcal{J} = 0.5515$ Top-8, $\mathcal{J} = 0.7778$ Top-5).
     \item \textbf{False-Positive and Near-Boundary Diagnosis:} Identification of latent flow features elevating risk in benign traffic, providing actionable firewall tuning rules.
-    \item \textbf{SHAP-Guided Lightweight Model Distillation:} Creation of an 8-feature lightweight detector retaining 100\% F1-score while operating at 0.0019 ms per 1,000 flows ($527,611$ flows/sec).
+    \item \textbf{Leakage-Free SHAP-Guided Distillation:} Creation of an 8-feature lightweight detector retaining 100\% F1-score while operating at 0.0030~ms per flow (2.97~ms per 1,000 flows; full-model throughput: 462,348 flows/sec).
     \item \textbf{Interactive SOC Analyst Dashboard:} A 5-tab Streamlit dashboard delivering automated plain-English alert triage and local SHAP waterfall plots.
 \end{itemize}
 
@@ -138,7 +138,7 @@ Experiments were conducted on the CSE-CIC-IDS2018 cloud dataset (100,000 flows: 
 \section{Experimental Results and In-Depth Discussion}
 
 \subsection{Data Preprocessing and Collinearity Filtering}
-Of the 78 initial features, 10 zero-variance columns were eliminated. Multicollinearity filtering ($|r| > 0.90$) pruned 30 redundant features, yielding 38 independent predictors.
+Of the 78 initial features, 10 zero-variance columns were eliminated. Multicollinearity filtering ($|r| > 0.90$) pruned 28 redundant features, yielding 40 independent predictors.
 
 \subsection{Multi-Model Baseline Benchmarking}
 Table~\ref{tab:baseline_results} compares Logistic Regression, Decision Tree, Extra Trees, and the proposed Random Forest. Random Forest achieved 100\% Accuracy, 100\% F1-Score, and 1.0 ROC-AUC with a throughput of 501,258 flows/sec.
@@ -160,13 +160,13 @@ Random Forest (Proposed) & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 1.0000 & 0.73 & 4
 \end{table*}
 
 \subsection{SHAP Global Feature Interpretability}
-Table~\ref{tab:shap_features} details the Top-15 most influential features. The top 5 features are:
+Table~\ref{tab:shap_features} details the Top-15 most influential features (computed leakage-free on $X_{\text{train}}$). The top 5 features are:
 \begin{enumerate}
-    \item \texttt{Dst\_Port} ($0.1339$): Targets service ports 21 (FTP) and 22 (SSH).
-    \item \texttt{Fwd\_Seg\_Size\_Min} ($0.1307$): Captures TCP segment and options signatures of automated tools (Hydra, Medusa).
-    \item \texttt{Init\_Fwd\_Win\_Byts} ($0.0582$): Client initial TCP window fingerprint.
-    \item \texttt{Flow\_Pkts\_s} ($0.0373$): Packet frequency during automated login attempts.
-    \item \texttt{Flow\_IAT\_Max} ($0.0267$): Flow inter-arrival timing dynamics.
+    \item \texttt{Fwd\_Act\_Data\_Pkts} ($0.0929$): Number of forward packets with actual data payload---directly separates brute-force tool flows (low/zero data) from benign sessions.
+    \item \texttt{Fwd\_Seg\_Size\_Min} ($0.0840$): Captures TCP segment size signatures of automated tools (Hydra, Medusa).
+    \item \texttt{Dst\_Port} ($0.0643$): Targets service ports 21 (FTP) and 22 (SSH) as primary attack indicators.
+    \item \texttt{TotLen\_Fwd\_Pkts} ($0.0384$): Total forward payload volume discriminating scan versus legitimate transfers.
+    \item \texttt{Tot\_Bwd\_Pkts} ($0.0279$): Response packet count characterizing server-side behavior during attacks.
 \end{enumerate}
 
 \begin{table}[h]
@@ -177,21 +177,21 @@ Table~\ref{tab:shap_features} details the Top-15 most influential features. The 
 \toprule
 \textbf{Rank} & \textbf{Feature Name} & \textbf{Mean $|SHAP|$} \\
 \midrule
-1 & \texttt{Dst\_Port} & 0.1339 \\
-2 & \texttt{Fwd\_Seg\_Size\_Min} & 0.1307 \\
-3 & \texttt{Init\_Fwd\_Win\_Byts} & 0.0582 \\
-4 & \texttt{Flow\_Pkts\_s} & 0.0373 \\
-5 & \texttt{Flow\_IAT\_Max} & 0.0267 \\
-6 & \texttt{Init\_Bwd\_Win\_Byts} & 0.0224 \\
-7 & \texttt{Flow\_Duration} & 0.0195 \\
-8 & \texttt{Flow\_Byts\_s} & 0.0156 \\
-9 & \texttt{Flow\_IAT\_Mean} & 0.0147 \\
-10 & \texttt{Fwd\_Act\_Data\_Pkts} & 0.0096 \\
-11 & \texttt{Tot\_Fwd\_Pkts} & 0.0086 \\
-12 & \texttt{Fwd\_Pkt\_Len\_Mean} & 0.0076 \\
-13 & \texttt{Down\_Up\_Ratio} & 0.0068 \\
-14 & \texttt{Fwd\_Pkt\_Len\_Max} & 0.0055 \\
-15 & \texttt{Flow\_IAT\_Std} & 0.0051 \\
+1 & \texttt{Fwd\_Act\_Data\_Pkts} & 0.0929 \\
+2 & \texttt{Fwd\_Seg\_Size\_Min} & 0.0840 \\
+3 & \texttt{Dst\_Port} & 0.0643 \\
+4 & \texttt{TotLen\_Fwd\_Pkts} & 0.0384 \\
+5 & \texttt{Tot\_Bwd\_Pkts} & 0.0279 \\
+6 & \texttt{Init\_Fwd\_Win\_Byts} & 0.0269 \\
+7 & \texttt{Tot\_Fwd\_Pkts} & 0.0255 \\
+8 & \texttt{Pkt\_Len\_Max} & 0.0138 \\
+9 & \texttt{Flow\_IAT\_Max} & 0.0121 \\
+10 & \texttt{Init\_Bwd\_Win\_Byts} & 0.0108 \\
+11 & \texttt{Flow\_Duration} & 0.0095 \\
+12 & \texttt{Flow\_Pkts\_s} & 0.0082 \\
+13 & \texttt{Fwd\_Pkt\_Len\_Mean} & 0.0071 \\
+14 & \texttt{Flow\_Byts\_s} & 0.0063 \\
+15 & \texttt{Down\_Up\_Ratio} & 0.0049 \\
 \bottomrule
 \end{tabular}
 \end{table}

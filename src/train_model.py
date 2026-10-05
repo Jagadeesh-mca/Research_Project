@@ -65,6 +65,9 @@ def evaluate(clf, X_test, y_test, label_encoder):
     roc_auc = float(roc_auc_score(y_test, y_proba)) if y_proba is not None else 0.0
     pr_auc = float(average_precision_score(y_test, y_proba)) if y_proba is not None else 0.0
 
+    latency_per_flow_ms = float((predict_time / len(X_test)) * 1000.0)
+    latency_per_1k_flows_ms = float(latency_per_flow_ms * 1000.0)
+
     metrics = {
         "accuracy": float(accuracy_score(y_test, y_pred)),
         "precision": float(precision_score(y_test, y_pred, zero_division=0)),
@@ -76,7 +79,9 @@ def evaluate(clf, X_test, y_test, label_encoder):
         "roc_auc": roc_auc,
         "pr_auc": pr_auc,
         "predict_time_s": float(predict_time),
-        "predict_time_per_1k_ms": float((predict_time / len(X_test)) * 1000.0),
+        "latency_per_flow_ms": latency_per_flow_ms,
+        "latency_per_1k_flows_ms": latency_per_1k_flows_ms,
+        "predict_time_per_1k_ms": latency_per_1k_flows_ms,
         "throughput_flows_per_s": float(throughput),
     }
     report = classification_report(
@@ -202,7 +207,9 @@ def benchmark_baselines(X_train, y_train, X_test, y_test, label_encoder):
             "FPR": float(fpr),
             "FNR": float(fnr),
             "Train_Time_s": float(t_train),
-            "Inference_Latency_ms": float((t_pred / len(X_test)) * 1000.0),
+            "Latency_per_Flow_ms": float((t_pred / len(X_test)) * 1000.0),
+            "Latency_per_1k_Flows_ms": float((t_pred / len(X_test)) * 1000.0 * 1000.0),
+            "Inference_Latency_ms": float((t_pred / len(X_test)) * 1000.0 * 1000.0),
             "Throughput_Flows_s": float(len(X_test) / max(t_pred, 1e-6))
         })
 

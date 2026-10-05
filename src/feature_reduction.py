@@ -53,7 +53,8 @@ def compare_full_vs_reduced(split, ranking, k_values=(5, 8, 10, 12, 15)):
         "fnr": res_full["metrics"]["false_negative_rate"],
         "train_time_s": train_time_full,
         "predict_time_s": res_full["metrics"]["predict_time_s"],
-        "latency_per_1k_ms": res_full["metrics"]["predict_time_per_1k_ms"],
+        "latency_per_flow_ms": res_full["metrics"]["latency_per_flow_ms"],
+        "latency_per_1k_ms": res_full["metrics"]["latency_per_1k_flows_ms"],
         "throughput_flows_s": res_full["metrics"]["throughput_flows_per_s"],
     })
 
@@ -77,7 +78,8 @@ def compare_full_vs_reduced(split, ranking, k_values=(5, 8, 10, 12, 15)):
             "fnr": res_k["metrics"]["false_negative_rate"],
             "train_time_s": train_time_k,
             "predict_time_s": res_k["metrics"]["predict_time_s"],
-            "latency_per_1k_ms": res_k["metrics"]["predict_time_per_1k_ms"],
+            "latency_per_flow_ms": res_k["metrics"]["latency_per_flow_ms"],
+            "latency_per_1k_ms": res_k["metrics"]["latency_per_1k_flows_ms"],
             "throughput_flows_s": res_k["metrics"]["throughput_flows_per_s"],
         })
         models[f"top_{k}"] = (clf_k, res_k, top_features)

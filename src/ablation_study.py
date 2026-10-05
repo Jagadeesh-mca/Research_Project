@@ -66,7 +66,8 @@ def run_ablation_experiments(split, ranking, top_k=8, seed=42):
         "FPR": float(fp / (fp + tn) if (fp + tn) > 0 else 0),
         "FNR": float(fn / (fn + tp) if (fn + tp) > 0 else 0),
         "Train_Time_s": float(t_tr_a1),
-        "Latency_ms_1k": float((t_pred_a1 / len(X_te_raw)) * 1000.0),
+        "Latency_ms_per_flow": float((t_pred_a1 / len(X_te_raw)) * 1000.0),
+        "Latency_ms_1k": float((t_pred_a1 / len(X_te_raw)) * 1000.0 * 1000.0),
         "Throughput_Flows_s": float(len(X_te_raw) / max(t_pred_a1, 1e-6)),
     })
 
@@ -99,7 +100,8 @@ def run_ablation_experiments(split, ranking, top_k=8, seed=42):
         "FPR": float(fp / (fp + tn) if (fp + tn) > 0 else 0),
         "FNR": float(fn / (fn + tp) if (fn + tp) > 0 else 0),
         "Train_Time_s": float(t_tr_a2),
-        "Latency_ms_1k": float((t_pred_a2 / len(X_te_s)) * 1000.0),
+        "Latency_ms_per_flow": float((t_pred_a2 / len(X_te_s)) * 1000.0),
+        "Latency_ms_1k": float((t_pred_a2 / len(X_te_s)) * 1000.0 * 1000.0),
         "Throughput_Flows_s": float(len(X_te_s) / max(t_pred_a2, 1e-6)),
     })
 
@@ -132,7 +134,8 @@ def run_ablation_experiments(split, ranking, top_k=8, seed=42):
         "FPR": float(fp / (fp + tn) if (fp + tn) > 0 else 0),
         "FNR": float(fn / (fn + tp) if (fn + tp) > 0 else 0),
         "Train_Time_s": float(t_tr_a3),
-        "Latency_ms_1k": float((t_pred_a3 / len(X_te_r)) * 1000.0),
+        "Latency_ms_per_flow": float((t_pred_a3 / len(X_te_r)) * 1000.0),
+        "Latency_ms_1k": float((t_pred_a3 / len(X_te_r)) * 1000.0 * 1000.0),
         "Throughput_Flows_s": float(len(X_te_r) / max(t_pred_a3, 1e-6)),
     })
 
@@ -161,7 +164,8 @@ def run_ablation_experiments(split, ranking, top_k=8, seed=42):
         "FPR": float(fp / (fp + tn) if (fp + tn) > 0 else 0),
         "FNR": float(fn / (fn + tp) if (fn + tp) > 0 else 0),
         "Train_Time_s": float(t_tr_a4),
-        "Latency_ms_1k": float((t_pred_a4 / len(X_te_r)) * 1000.0),
+        "Latency_ms_per_flow": float((t_pred_a4 / len(X_te_r)) * 1000.0),
+        "Latency_ms_1k": float((t_pred_a4 / len(X_te_r)) * 1000.0 * 1000.0),
         "Throughput_Flows_s": float(len(X_te_r) / max(t_pred_a4, 1e-6)),
     })
 
@@ -194,7 +198,8 @@ def run_ablation_experiments(split, ranking, top_k=8, seed=42):
         "FPR": float(fp / (fp + tn) if (fp + tn) > 0 else 0),
         "FNR": float(fn / (fn + tp) if (fn + tp) > 0 else 0),
         "Train_Time_s": float(t_tr_a5),
-        "Latency_ms_1k": float((t_pred_a5 / len(X_te_lw)) * 1000.0),
+        "Latency_ms_per_flow": float((t_pred_a5 / len(X_te_lw)) * 1000.0),
+        "Latency_ms_1k": float((t_pred_a5 / len(X_te_lw)) * 1000.0 * 1000.0),
         "Throughput_Flows_s": float(len(X_te_lw) / max(t_pred_a5, 1e-6)),
     })
 

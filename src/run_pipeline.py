@@ -56,17 +56,18 @@ REAL_DATA_FILE = PROJECT_ROOT / "data" / "02-14-2018.csv"
 REAL_DATA_PATHS = [str(REAL_DATA_FILE)] if REAL_DATA_FILE.exists() else []
 
 
-def safe_show():
-    """Displays the active Matplotlib figure directly on screen in VS Code."""
+def safe_show(show_plot=True):
+    """Displays the active Matplotlib figure directly on screen in VS Code if show_plot is True."""
     try:
-        plt.show()
+        if show_plot:
+            plt.show()
     except Exception as e:
         print(f"  [Display notice: {e}]")
     finally:
         plt.close("all")
 
 
-def plot_dataset_distribution(df: pd.DataFrame, out_path: str):
+def plot_dataset_distribution(df: pd.DataFrame, out_path: str, show_plot=True):
     plt.close("all")
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 
@@ -88,11 +89,12 @@ def plot_dataset_distribution(df: pd.DataFrame, out_path: str):
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
-    print("  -> Displaying Class Distribution plot on the spot (close window to proceed)...")
-    safe_show()
+    if show_plot:
+        print("  -> Displaying Class Distribution plot on the spot (close window to proceed)...")
+    safe_show(show_plot)
 
 
-def run_full_pipeline(sample_size=100_000, seed=42):
+def run_full_pipeline(sample_size=100_000, seed=42, show_gui=True):
     plt.close("all")
     print("\n" + "=" * 60)
     print(f"EXECUTING FRESH IDS RESEARCH PIPELINE (N={sample_size:,}, SEED={seed})")
@@ -127,7 +129,7 @@ def run_full_pipeline(sample_size=100_000, seed=42):
     leakage = split["leakage_report"]
     print(f"  Clean unique flows: {len(df_clean):,} (using {len(df):,})")
     print(f"  Leakage verification -> Overlap: {leakage['train_test_overlap_count']} rows, Leakage-free: {leakage['leakage_free']}")
-    plot_dataset_distribution(df, str(FIG_DIR / "class_distribution.png"))
+    plot_dataset_distribution(df, str(FIG_DIR / "class_distribution.png"), show_plot=show_gui)
 
     summary["dataset"] = {
         "n_rows": len(df),
@@ -155,8 +157,9 @@ def run_full_pipeline(sample_size=100_000, seed=42):
     )
     corr_time = time.time() - t0
     print(f"  Pruned {len(dropped_features)} multicollinear features. Retained: {len(kept_features)} features.")
-    print("  -> Displaying Correlation Heatmap on the spot (close window to proceed)...")
-    plot_correlation_heatmap(corr, str(FIG_DIR / "correlation_heatmap.png"), dropped_features, show_plot=True)
+    if show_gui:
+        print("  -> Displaying Correlation Heatmap on the spot (close window to proceed)...")
+    plot_correlation_heatmap(corr, str(FIG_DIR / "correlation_heatmap.png"), dropped_features, show_plot=show_gui)
 
     split["X_train"], split["X_test"], split["feature_cols"] = X_train_r, X_test_r, kept_features
     summary["correlation_analysis"] = {
@@ -172,21 +175,23 @@ def run_full_pipeline(sample_size=100_000, seed=42):
     baseline_df = benchmark_baselines(split["X_train"], split["y_train"], split["X_test"], split["y_test"], split["label_encoder"])
     baseline_df.to_csv(str(OUT / "baseline_comparison.csv"), index=False)
     summary["baseline_benchmarks"] = baseline_df.round(4).to_dict(orient="records")
-    print(baseline_df[["Classifier", "Accuracy", "F1-Score", "ROC-AUC", "Inference_Latency_ms", "Throughput_Flows_s"]].to_string(index=False))
-    print("  -> Displaying Model Comparison benchmark plot on the spot (close window to proceed)...")
-    plot_model_comparison(baseline_df, str(FIG_DIR / "model_comparison.png"), show_plot=True)
+    print(baseline_df[["Classifier", "Accuracy", "F1-Score", "ROC-AUC", "Latency_per_Flow_ms", "Latency_per_1k_Flows_ms", "Throughput_Flows_s"]].to_string(index=False))
+    if show_gui:
+        print("  -> Displaying Model Comparison benchmark plot on the spot (close window to proceed)...")
+    plot_model_comparison(baseline_df, str(FIG_DIR / "model_comparison.png"), show_plot=show_gui)
 
     # Stage 5: Train Proposed Full Model
     print("\n[5/11] Training Proposed Full Random Forest Model...")
     clf, train_time = train_random_forest(split["X_train"], split["y_train"], n_estimators=100, max_depth=16, seed=seed)
     results = evaluate(clf, split["X_test"], split["y_test"], split["label_encoder"])
     print(f"  Accuracy: {results['metrics']['accuracy']*100:.2f}% | F1: {results['metrics']['f1']:.4f} | ROC-AUC: {results['metrics']['roc_auc']:.4f}")
-    print(f"  Inference Latency: {results['metrics']['predict_time_per_1k_ms']:.4f} ms/1k | Throughput: {results['metrics']['throughput_flows_per_s']:,.0f} flows/s")
+    print(f"  Inference Latency: {results['metrics']['latency_per_flow_ms']:.6f} ms/flow ({results['metrics']['latency_per_1k_flows_ms']:.4f} ms/1k) | Throughput: {results['metrics']['throughput_flows_per_s']:,.0f} flows/s")
     print(f"  Confusion Matrix: {results['confusion_matrix'].tolist()}")
-    print("  -> Displaying Confusion Matrix on the spot...")
-    plot_confusion_matrix(results["confusion_matrix"], split["label_encoder"].classes_, str(FIG_DIR / "confusion_matrix.png"), show_plot=True)
-    plot_roc_curve(split["y_test"], results["y_proba"], str(FIG_DIR / "roc_curve.png"), show_plot=True)
-    plot_precision_recall_curve(split["y_test"], results["y_proba"], str(FIG_DIR / "pr_curve.png"), show_plot=True)
+    if show_gui:
+        print("  -> Displaying Confusion Matrix on the spot...")
+    plot_confusion_matrix(results["confusion_matrix"], split["label_encoder"].classes_, str(FIG_DIR / "confusion_matrix.png"), show_plot=show_gui)
+    plot_roc_curve(split["y_test"], results["y_proba"], str(FIG_DIR / "roc_curve.png"), show_plot=show_gui)
+    plot_precision_recall_curve(split["y_test"], results["y_proba"], str(FIG_DIR / "pr_curve.png"), show_plot=show_gui)
 
     summary["full_model"] = {
         "n_features": len(split["feature_cols"]),
@@ -198,28 +203,35 @@ def run_full_pipeline(sample_size=100_000, seed=42):
     joblib.dump(clf, str(OUT / "rf_full_model.joblib"))
     joblib.dump(split, str(OUT / "split.joblib"))
 
-    # Stage 6: SHAP Explainability
+    # Stage 6: SHAP Explainability (Leakage-Free Ranking on X_train)
     print("\n[6/11] Computing SHAP explainability via TreeExplainer...")
     t0 = time.time()
     explainer = build_explainer(clf)
-    shap_values, X_sample = compute_shap_values(explainer, split["X_test"], sample_size=1000, seed=seed)
-    ranking = global_feature_importance(shap_values, split["feature_cols"])
+    
+    # 1. Feature selection ranking: computed STRICTLY on X_train (Leakage-Free)
+    shap_values_train, X_sample_train = compute_shap_values(explainer, split["X_train"], sample_size=1000, seed=seed)
+    ranking = global_feature_importance(shap_values_train, split["feature_cols"])
     shap_time = time.time() - t0
     ranking.to_csv(str(OUT / "shap_feature_ranking.csv"))
-    print(f"  SHAP completed in {shap_time:.2f}s. Top 3 drivers: {list(ranking.index[:3])}")
-    print("  -> Displaying SHAP Summary Beeswarm on the spot...")
-    plot_summary(shap_values, X_sample, str(FIG_DIR / "shap_summary.png"), show_plot=True)
-    plot_bar(ranking, str(FIG_DIR / "shap_bar.png"), top_n=15, show_plot=True)
-    plot_dependence(shap_values, X_sample, ranking.index[0], str(FIG_DIR / "shap_dependence.png"), show_plot=True)
+    print(f"  SHAP feature ranking computed on X_train in {shap_time:.2f}s. Top 3 drivers: {list(ranking.index[:3])}")
+
+    # 2. Local test explanations and beeswarm: computed on X_test for triage evaluation
+    shap_values_test, X_sample_test = compute_shap_values(explainer, split["X_test"], sample_size=1000, seed=seed)
+    if show_gui:
+        print("  -> Displaying SHAP Summary Beeswarm on the spot...")
+    plot_summary(shap_values_test, X_sample_test, str(FIG_DIR / "shap_summary.png"), show_plot=show_gui)
+    plot_bar(ranking, str(FIG_DIR / "shap_bar.png"), top_n=15, show_plot=show_gui)
+    plot_dependence(shap_values_test, X_sample_test, ranking.index[0], str(FIG_DIR / "shap_dependence.png"), show_plot=show_gui)
 
     # Local Explanations
     malicious_idx = split["X_test"][split["y_test"] == 1].index
     proba_mal = clf.predict_proba(split["X_test"].loc[malicious_idx])[:, 1]
     best_mal_idx = malicious_idx[np.argmax(proba_mal)]
     row_mal = split["X_test"].loc[[best_mal_idx]]
-    print(f"  -> Displaying Local Malicious Waterfall ({split['cat_test'].loc[best_mal_idx]})...")
+    if show_gui:
+        print(f"  -> Displaying Local Malicious Waterfall ({split['cat_test'].loc[best_mal_idx]})...")
     plot_waterfall(explainer, row_mal, split["feature_cols"], str(FIG_DIR / "shap_waterfall_malicious.png"),
-                   title=f"Local SHAP Explanation: Confirmed Malicious Attack ({split['cat_test'].loc[best_mal_idx]})", show_plot=True)
+                   title=f"Local SHAP Explanation: Confirmed Malicious Attack ({split['cat_test'].loc[best_mal_idx]})", show_plot=show_gui)
 
     summary["shap"] = {
         "shap_computation_time_s": round(shap_time, 2),
@@ -235,8 +247,9 @@ def run_full_pipeline(sample_size=100_000, seed=42):
         clf, explainer, X_fp, split["feature_cols"], X_benign=X_benign, top_n=8
     )
     if driving_features is not None:
-        print("  -> Displaying False Positive / Risk Drivers plot on the spot...")
-        plot_fp_drivers(driving_features, str(FIG_DIR / "false_positive_drivers.png"), is_near_boundary, show_plot=True)
+        if show_gui:
+            print("  -> Displaying False Positive / Risk Drivers plot on the spot...")
+        plot_fp_drivers(driving_features, str(FIG_DIR / "false_positive_drivers.png"), is_near_boundary, show_plot=show_gui)
 
     summary["false_positive_analysis"] = {
         "n_false_positives": int(len(X_fp)),
@@ -250,9 +263,10 @@ def run_full_pipeline(sample_size=100_000, seed=42):
     # Stage 8: Feature Reduction
     print("\n[8/11] Evaluating SHAP-driven feature distillation (Full vs Top-5, 8, 10, 12, 15)...")
     comparison_df, models = compare_full_vs_reduced(split, ranking, k_values=(5, 8, 10, 12, 15))
-    print(comparison_df[["model", "n_features", "accuracy", "f1", "latency_per_1k_ms", "throughput_flows_s"]].to_string(index=False))
-    print("  -> Displaying Feature Reduction Trade-off on the spot...")
-    plot_comparison(comparison_df, str(FIG_DIR / "feature_reduction_tradeoff.png"), show_plot=True)
+    print(comparison_df[["model", "n_features", "accuracy", "f1", "latency_per_flow_ms", "latency_per_1k_ms", "throughput_flows_s"]].to_string(index=False))
+    if show_gui:
+        print("  -> Displaying Feature Reduction Trade-off on the spot...")
+    plot_comparison(comparison_df, str(FIG_DIR / "feature_reduction_tradeoff.png"), show_plot=show_gui)
 
     best_k = "top_8" if "top_8" in models else list(models.keys())[1]
     best_clf, best_res, best_features = models[best_k]
@@ -262,14 +276,15 @@ def run_full_pipeline(sample_size=100_000, seed=42):
 
     # Stage 9: Explanation Stability
     print("\n[9/11] Assessing explanation stability (local neighbour consistency & bootstrap)...")
-    spearmans, cosines = neighbour_explanation_consistency(explainer, split["X_test"], n_samples=50, seed=seed)
+    spearmans, cosines = neighbour_explanation_consistency(explainer, split["X_test"], n_samples=100, seed=seed)
     rankings = bootstrap_ranking_stability(
         split["X_train"], split["y_train"], split["feature_cols"],
-        n_bootstraps=3, sample_size=400, seed=seed, n_estimators=60,
+        n_bootstraps=3, sample_size=1000, seed=seed, n_estimators=60,
     )
     boot_summary = summarise_bootstrap_stability(rankings, top_k=8)
-    print("  -> Displaying Explanation Stability distributions on the spot...")
-    plot_stability(spearmans, cosines, str(FIG_DIR / "stability_analysis.png"), show_plot=True)
+    if show_gui:
+        print("  -> Displaying Explanation Stability distributions on the spot...")
+    plot_stability(spearmans, cosines, str(FIG_DIR / "stability_analysis.png"), show_plot=show_gui)
     summary["stability_analysis"] = {
         "neighbour_consistency": {
             "n_pairs": int(len(spearmans)),
@@ -285,9 +300,10 @@ def run_full_pipeline(sample_size=100_000, seed=42):
     # Stage 10: Systematic Ablation Study
     print("\n[10/11] Conducting systematic architecture ablation study (5 configurations)...")
     ablation_df = run_ablation_experiments(split, ranking, top_k=8, seed=seed)
-    print(ablation_df[["Configuration", "Features", "F1-Score", "Latency_ms_1k", "Throughput_Flows_s"]].to_string(index=False))
-    print("  -> Displaying Ablation Study evaluation on the spot...")
-    plot_ablation_study(ablation_df, str(FIG_DIR / "ablation_study.png"), show_plot=True)
+    print(ablation_df[["Configuration", "Features", "F1-Score", "Latency_ms_per_flow", "Latency_ms_1k", "Throughput_Flows_s"]].to_string(index=False))
+    if show_gui:
+        print("  -> Displaying Ablation Study evaluation on the spot...")
+    plot_ablation_study(ablation_df, str(FIG_DIR / "ablation_study.png"), show_plot=show_gui)
     summary["ablation_study"] = ablation_df.round(4).to_dict(orient="records")
 
     # Stage 11: Export Reports
@@ -440,18 +456,21 @@ def main():
     parser = argparse.ArgumentParser(description="Explainable Intrusion Detection System")
     parser.add_argument("--mode", choices=["1", "2", "3"], help="Execution mode (1: Live Triage, 2: Full Pipeline, 3: Feature Reduction)")
     parser.add_argument("--sample-size", type=int, default=50_000, help="Sample size for training")
+    parser.add_argument("--no-gui", action="store_true", help="Run without popping up interactive GUI windows")
     args, unknown = parser.parse_known_args()
+
+    show_gui = not args.no_gui
 
     # If CLI arguments passed explicitly, execute directly
     if args.mode == "1":
         run_live_flow_triage()
         return
     elif args.mode == "2":
-        run_full_pipeline(sample_size=args.sample_size)
+        run_full_pipeline(sample_size=args.sample_size, show_gui=show_gui)
         return
     elif args.mode == "3":
         print(f"\nRunning Feature Reduction study...")
-        run_full_pipeline(sample_size=args.sample_size)
+        run_full_pipeline(sample_size=args.sample_size, show_gui=show_gui)
         return
 
     # Interactive Menu Prompt FIRST

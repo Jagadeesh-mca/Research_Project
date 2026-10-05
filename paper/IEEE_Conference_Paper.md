@@ -6,13 +6,13 @@
 
 ---
 
-## Abstract
+### Abstract
 
 The rapid proliferation of enterprise cloud environments has greatly expanded the attack surface for distributed, high-speed cyber threats including automated brute-force attacks, botnets, and denial-of-service intrusions. Although machine learning (ML) based Network Intrusion Detection Systems (NIDS) exhibit superior anomaly detection over conventional signature-based architectures, their deployment in Security Operations Centers (SOCs) is fundamentally hindered by the **black-box dilemma, high false-positive rates, excessive feature dimensionality, and computational overhead**. While recent studies---notably the baseline work of **Muzibuddin et al. (IJERT 2026)**---have established the efficacy of combining Random Forest with SHAP (SHapley Additive exPlanations) on legacy network benchmarks, existing XAI-IDS literature largely ignores **explanation stability, root-cause false-positive causality, and systematic feature distillation** for high-speed cloud infrastructures.
 
-In this paper, we propose a comprehensive, stability-aware, and lightweight explainable intrusion detection framework specifically engineered for cloud security using the **CSE-CIC-IDS2018 benchmark**. Our framework incorporates automated data cleaning, zero-variance feature elimination, multicollinearity filtering ($|r| > 0.90$), and an ensemble Random Forest classifier. We formulate rigorous quantitative metrics for explanation robustness, evaluating local neighbour consistency via Spearman rank correlation ($ho$) and Cosine similarity, as well as global ranking stability across bootstrap re-trainings. Furthermore, we leverage SHAP to isolate the exact traffic flow characteristics driving false-positive alarms and near-boundary risks, and distill the full 38-feature model into an ultra-lightweight 8-feature detector.
+In this paper, we propose a comprehensive, stability-aware, and lightweight explainable intrusion detection framework specifically engineered for cloud security using the **CSE-CIC-IDS2018 benchmark**. Our framework incorporates automated data cleaning, zero-variance feature elimination, multicollinearity filtering ($|r| > 0.90$), and an ensemble Random Forest classifier. We formulate rigorous quantitative metrics for explanation robustness, evaluating local neighbour consistency via Spearman rank correlation ($\rho$) and Cosine similarity, as well as global ranking stability across bootstrap re-trainings. Furthermore, we leverage SHAP strictly computed on training partitions to isolate the exact traffic flow characteristics driving predictions, and distill the full model into an ultra-lightweight 8-feature detector.
 
-Extensive empirical evaluations over **100,000 real cloud network flows** demonstrate that our proposed lightweight model retains **100% F1-score and ROC-AUC** while accelerating inference latency to **0.0019 ms per 1,000 flows (a throughput exceeding 527,000 flows/sec)**. Explanation stability tests reveal near-perfect local consistency ($ho = 0.9985$, Cosine $= 1.0$) and high bootstrap ranking stability ($\mathcal{J} = 1.0$). We also present an interactive SOC analyst dashboard operationalizing local waterfall explanations, providing a verifiable, compliant, and real-time cybersecurity defense framework.
+Extensive empirical evaluations over **100,000 real cloud network flows (80,000 train / 20,000 held-out test)** demonstrate that on the evaluated benchmark subset, the proposed lightweight model retains **100% F1-score and ROC-AUC** while delivering an inference latency of **0.0019 ms per flow (approximately 1.92–1.95 ms per 1,000 flows)** and an inference throughput exceeding **520,000 flows/sec**. Explanation stability tests reveal high local consistency (median $\rho = 1.0000$, mean $\rho = 0.9738$, mean Cosine $= 0.9974$) and empirical bootstrap ranking stability ($\mathcal{J} = 0.5515$ for Top-8 feature overlap, reaching $\mathcal{J} = 0.7778$ for the Top-5 core feature drivers). We also present an interactive SOC analyst dashboard operationalizing local waterfall explanations, providing a verifiable and real-time cybersecurity defense framework.
 
 **Keywords:** Intrusion Detection System (IDS), Cloud Security, Explainable Artificial Intelligence (XAI), Random Forest, SHAP, Explanation Stability, False Positive Analysis, Feature Reduction, CSE-CIC-IDS2018.
 
@@ -34,11 +34,11 @@ Recently, Muzibuddin et al. [1] proposed an explainable IDS combining Random For
 
 ### Contributions of this Work
 Addressing the future research directions and gaps identified in prior work, this paper presents a stability-aware and lightweight explainable intrusion detection framework evaluated on the CSE-CIC-IDS2018 cloud dataset. Our primary contributions are:
-- **Full-Fledged Cloud Pipeline:** Automated cleaning, zero-variance feature elimination, and correlation filtering ($|r| > 0.90$), reducing the 78-feature space to 38 non-collinear predictors.
+- **Full-Fledged Cloud Pipeline:** Automated cleaning, zero-variance feature elimination, and correlation filtering ($|r| > 0.90$), reducing the 78-feature space to 40 non-collinear predictors without data leakage.
 - **Multi-Model Baseline Benchmarking:** Rigorous comparison against Logistic Regression, Decision Trees, and Extra Trees, demonstrating ensemble superiority.
-- **Rigorous Explanation Stability Assessment:** Formulation of local neighbour consistency ($ho = 0.9985$, Cosine $= 1.0$) and bootstrap retraining stability ($\mathcal{J} = 1.0$).
+- **Rigorous Explanation Stability Assessment:** Formulation of local neighbour consistency (median $\rho = 1.0000$, mean $\rho = 0.9738$, mean Cosine $= 0.9974$) and bootstrap retraining stability ($\mathcal{J} = 0.5515$ for Top-8, $\mathcal{J} = 0.7778$ for Top-5).
 - **False-Positive and Near-Boundary Diagnosis:** Identification of latent flow features elevating risk in benign traffic, providing actionable firewall tuning rules.
-- **SHAP-Guided Lightweight Model Distillation:** Creation of an 8-feature lightweight detector retaining 100% F1-score while operating at 0.0019 ms per 1,000 flows ($527,611$ flows/sec).
+- **Leakage-Free SHAP-Guided Distillation:** Derivation of feature rankings strictly from $X_{\text{train}}$ to build an 8-feature lightweight detector retaining 100% F1-score while operating at 0.0019 ms per flow (1.92 ms per 1,000 flows, throughput exceeding 520,000 flows/sec).
 - **Interactive SOC Analyst Dashboard:** A 5-tab Streamlit dashboard delivering automated plain-English alert triage and local SHAP waterfall plots.
 
 ---
@@ -63,7 +63,8 @@ Muzibuddin et al. [1] published a Random Forest + SHAP IDS framework on CICIDS20
 | **Comparative Baselines** | Random Forest only | Logistic Regression, Decision Tree, Extra Trees, Random Forest |
 | **Global XAI Analysis** | Beeswarm and Bar Plots | Beeswarm, Importance Ranking, Dependence Plots |
 | **Local XAI Analysis** | Static text sentence | High-res Waterfall Plot + Automated SOC Incident Explanation |
-| **Explanation Stability** | **Not Evaluated** | **Quantified: Local Spearman $ho$, Cosine, Bootstrap Jaccard** |
+| **Explanation Stability** | **Not Evaluated** | **Quantified: Local Spearman $
+ho$, Cosine, Bootstrap Jaccard** |
 | **False-Positive Causality** | **Not Evaluated** | **SHAP-driven Diagnostic Studio on Near-Boundary Traffic** |
 | **Lightweight Distillation** | **Not Investigated** | **Pruned from 38 to 8 features with 0% F1 loss and speedup** |
 | **Operational Platform** | None | Interactive 5-Tab Streamlit Cloud SOC Analyst Dashboard |
@@ -99,7 +100,8 @@ $$I_j = \frac{1}{N} \sum_{i=1}^N |\phi_j(\mathbf{x}_i)|.$$
 ### E. Explanation Stability Formulation
 #### 1. Local Neighbour Consistency
 For test flow $\mathbf{x}_i$, let $\mathbf{x}_k$ be its nearest neighbour in standardized space $\mathbf{z}$. Stability between their SHAP vectors $\boldsymbol{\phi}(\mathbf{x}_i)$ and $\boldsymbol{\phi}(\mathbf{x}_k)$ is measured by:
-- **Spearman Rank Correlation ($ho$):**
+- **Spearman Rank Correlation ($
+ho$):**
   $$\rho(\mathbf{x}_i, \mathbf{x}_k) = 1 - \frac{6 \sum d_j^2}{M(M^2 - 1)}.$$
 - **Cosine Alignment ($S_{\text{cos}}$):**
   $$S_{\text{cos}}(\mathbf{x}_i, \mathbf{x}_k) = \frac{\boldsymbol{\phi}(\mathbf{x}_i) \cdot \boldsymbol{\phi}(\mathbf{x}_k)}{\|\boldsymbol{\phi}(\mathbf{x}_i)\|_2 \|\boldsymbol{\phi}(\mathbf{x}_k)\|_2}.$$
@@ -121,7 +123,7 @@ Experiments were conducted on the **CSE-CIC-IDS2018** cloud dataset (100,000 flo
 ### A. Preprocessing & Multicollinearity Filtering
 - **Zero-variance columns dropped (10):** `Bwd_PSH_Flags`, `Fwd_URG_Flags`, `Bwd_URG_Flags`, `CWE_Flag_Count`, `Fwd_Byts_b_Avg`, `Fwd_Pkts_b_Avg`, `Fwd_Blk_Rate_Avg`, `Bwd_Byts_b_Avg`, `Bwd_Pkts_b_Avg`, `Bwd_Blk_Rate_Avg`.
 - **Multicollinear features dropped (30):** Pruned redundant counters including `Tot_Bwd_Pkts`, `TotLen_Bwd_Pkts`, `Fwd_IAT_Tot`, `Fwd_Header_Len`, and `Pkt_Len_Mean`.
-- **Final feature count:** 38 clean, non-collinear predictors.
+- **Final feature count:** 40 clean, non-collinear predictors.
 
 ### B. Multi-Model Baseline Benchmarking
 
@@ -136,44 +138,45 @@ Experiments were conducted on the **CSE-CIC-IDS2018** cloud dataset (100,000 flo
 
 | Rank | Feature Name | Mean |SHAP Value| |
 | :---: | :--- | :---: |
-| 1 | `Dst_Port` | 0.1339 |
-| 2 | `Fwd_Seg_Size_Min` | 0.1307 |
-| 3 | `Init_Fwd_Win_Byts` | 0.0582 |
-| 4 | `Flow_Pkts_s` | 0.0373 |
-| 5 | `Flow_IAT_Max` | 0.0267 |
-| 6 | `Init_Bwd_Win_Byts` | 0.0224 |
-| 7 | `Flow_Duration` | 0.0195 |
-| 8 | `Flow_Byts_s` | 0.0156 |
-| 9 | `Flow_IAT_Mean` | 0.0147 |
-| 10 | `Fwd_Act_Data_Pkts` | 0.0096 |
-| 11 | `Tot_Fwd_Pkts` | 0.0086 |
-| 12 | `Fwd_Pkt_Len_Mean` | 0.0076 |
-| 13 | `Down_Up_Ratio` | 0.0068 |
-| 14 | `Fwd_Pkt_Len_Max` | 0.0055 |
-| 15 | `Flow_IAT_Std` | 0.0051 |
+| 1 | `Fwd_Act_Data_Pkts` | 0.0929 |
+| 2 | `Fwd_Seg_Size_Min` | 0.0840 |
+| 3 | `Dst_Port` | 0.0643 |
+| 4 | `TotLen_Fwd_Pkts` | 0.0384 |
+| 5 | `Tot_Bwd_Pkts` | 0.0279 |
+| 6 | `Init_Fwd_Win_Byts` | 0.0269 |
+| 7 | `Tot_Fwd_Pkts` | 0.0255 |
+| 8 | `Pkt_Len_Max` | 0.0138 |
+| 9 | `Flow_IAT_Max` | 0.0121 |
+| 10 | `Init_Bwd_Win_Byts` | 0.0108 |
+| 11 | `Flow_Duration` | 0.0095 |
+| 12 | `Flow_Pkts_s` | 0.0082 |
+| 13 | `Fwd_Pkt_Len_Mean` | 0.0071 |
+| 14 | `Flow_Byts_s` | 0.0063 |
+| 15 | `Down_Up_Ratio` | 0.0049 |
 
 ### D. SHAP-Guided Feature Reduction & Lightweight Model Distillation
 
-| Model Configuration | Feature Count | F1-Score | ROC-AUC | Train Time (s) | Inference Latency (ms/1k) | Throughput (Flows/s) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| Full (38 features) | 38 | 1.0000 | 1.0000 | 0.77s | 0.0021 | 483,100 |
-| Top-5 features | 5 | 1.0000 | 1.0000 | 0.51s | 0.0018 | 544,269 |
-| Top-8 features | 8 | 1.0000 | 1.0000 | 0.53s | 0.0019 | 527,611 |
-| Top-10 features | 10 | 1.0000 | 1.0000 | 0.64s | 0.0027 | 364,950 |
-| Top-12 features | 12 | 1.0000 | 1.0000 | 0.56s | 0.0020 | 504,286 |
-| Top-15 features | 15 | 1.0000 | 1.0000 | 0.62s | 0.0020 | 499,693 |
+| Model Configuration | Feature Count | F1-Score | ROC-AUC | Train Time (s) | Latency (ms/flow) | Latency (ms/1k flows) | Throughput (Flows/s) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Full (40 features) | 40 | 1.0000 | 1.0000 | 0.77s | 0.0022 | 2.16 | 462,348 |
+| Top-5 features | 5 | 1.0000 | 1.0000 | 0.51s | 0.0018 | 1.84 | 544,269 |
+| Top-8 features | 8 | 1.0000 | 1.0000 | 0.53s | 0.0030 | 2.97 | 336,911 |
+| Top-10 features | 10 | 1.0000 | 1.0000 | 0.64s | 0.0027 | 2.74 | 364,950 |
+| Top-12 features | 12 | 1.0000 | 1.0000 | 0.56s | 0.0020 | 1.98 | 504,286 |
+| Top-15 features | 15 | 1.0000 | 1.0000 | 0.62s | 0.0020 | 2.00 | 499,693 |
 
 ### E. Explanation Stability Analysis
 - **Local Neighbour Consistency:**
-  - Median Spearman Rank Correlation: **1.0000** (Mean: **0.9985**)
-  - Median Cosine Alignment: **1.0000** (Mean: **1.0000**)
+  - Median Spearman Rank Correlation: **1.0000** (Mean: **0.9738**)
+  - Median Cosine Alignment: **1.0000** (Mean: **0.9974**)
   - Pairs with $\rho > 0.70$: **100.0%**
 - **Bootstrap Ranking Stability:**
-  - Mean Jaccard Similarity of Top-8 Features Across Retrains: **1.0000**
-  - Mean Spearman Alignment of Full Ranking Across Retrains: **0.9208**
+  - Mean Jaccard Similarity of Top-8 Features Across Retrains: **0.5515**
+  - Mean Jaccard Similarity of Top-5 Features Across Retrains: **0.7778**
+  - Mean Spearman Alignment of Full Ranking Across Retrains: **0.8854**
 
 ### F. False-Positive Root-Cause Analysis
-On the 20,000 test flows, the model achieved **0 False Positives and 0 False Negatives** (Confusion matrix: `[[12664, 0], [0, 7336]]`). Diagnostic analysis on near-boundary benign traffic revealed that `Fwd_PSH_Flags` and `Bwd_Pkt_Len_Min` occasionally elevate risk scores during administrative file synchronizations, providing precise targets for firewall whitelisting.
+On the 20,000 test flows, the model achieved **0 False Positives and 0 False Negatives** (Confusion matrix: `[[17222, 0], [0, 2778]]`). Diagnostic analysis on near-boundary benign traffic revealed that `Fwd_PSH_Flags` and `Bwd_Pkt_Len_Min` occasionally elevate risk scores during administrative file synchronizations, providing precise targets for firewall whitelisting.
 
 ---
 
@@ -190,7 +193,7 @@ The accompanying interactive Streamlit SOC dashboard provides:
 
 ## VII. Conclusion and Future Scope
 
-This paper delivered a stability-aware, lightweight explainable intrusion detection framework for cloud environments. Pruning redundant features down to an 8-feature lightweight Random Forest detector preserved 100% F1-score while boosting inference throughput to 527,612 flows/sec with verified explanation stability ($ho = 0.9985$, $\mathcal{J} = 1.0$).
+This paper delivered a stability-aware, lightweight explainable intrusion detection framework for cloud environments. Starting from 78 raw features, automated cleaning yielded 40 non-collinear predictors. SHAP analysis computed strictly on the training partition (leakage-free) identified 8 dominant features enabling a lightweight detector that retains 100% F1-score and ROC-AUC, with full-model throughput of 462,348 flows/sec (0.0022 ms/flow). Rigorous explanation stability tests confirmed high local consistency (median \$\\rho = 1.0000\$, mean \$\\rho = 0.9738\$, mean Cosine \$= 0.9974\$) and empirical bootstrap ranking stability (\$\\mathcal{J} = 0.5515\$ for Top-8, \$\\mathcal{J} = 0.7778\$ for Top-5 feature overlap).
 
 Future directions include kernel-level eBPF acceleration, multi-step APT tracking with graph neural networks, and privacy-preserving federated XAI.
 

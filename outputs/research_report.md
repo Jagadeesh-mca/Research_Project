@@ -10,20 +10,20 @@
 - **Proposed Model Accuracy:** 100.00%
 - **Detection F1-Score:** 1.0000
 - **ROC-AUC:** 1.0000
-- **Inference Latency:** 0.1639 ms per 1,000 flows
-- **Detection Throughput:** 6,102 flows/sec
-- **Pipeline Execution Time:** 77.88 seconds
+- **Inference Latency:** 2.1629 ms per 1,000 flows
+- **Detection Throughput:** 462,348 flows/sec
+- **Pipeline Execution Time:** 43.24 seconds
 
 ---
 
 ## 2. Dataset & Preprocessing Methodology
 
-- **Benchmark Source:** Real CSE-CIC-IDS2018 cloud dataset (C:\Users\Vishal\Downloads\ids_intrusion_detection_project\data\02-14-2018.csv) (sampled 1,000 flows)
-- **Total Flow Records Sampled:** 1,000
-- **Benign Class Proportion:** 869 (86.9%)
-- **Malicious Class Proportion:** 131 (13.1%)
-- **Attack Categories:** {'Benign': 869, 'SSH-Bruteforce': 131}
-- **Stratified Train / Test Split:** 800 / 200 (80/20)
+- **Benchmark Source:** Real CSE-CIC-IDS2018 cloud dataset (C:\Users\Vishal\Downloads\ids_intrusion_detection_project\data\02-14-2018.csv) (sampled 100,000 flows)
+- **Total Flow Records Sampled:** 100,000
+- **Benign Class Proportion:** 86,111 (86.1%)
+- **Malicious Class Proportion:** 13,889 (13.9%)
+- **Attack Categories:** {'Benign': 86111, 'SSH-Bruteforce': 13882, 'FTP-BruteForce': 7}
+- **Stratified Train / Test Split:** 80,000 / 20,000 (80/20)
 
 ### Rigorous Leakage Prevention Checks
 - **Train/Test Sample Overlap:** 0 duplicates (0.00%)
@@ -38,8 +38,8 @@
 ## 3. Correlation & Multicollinearity Filtering
 
 - **Threshold:** |r| > 0.9
-- **Redundant Features Pruned:** 33
-- **Retained Behavioral Features:** 35
+- **Redundant Features Pruned:** 28
+- **Retained Behavioral Features:** 40
 
 ![Correlation Heatmap](figures/correlation_heatmap.png)
 
@@ -49,10 +49,10 @@
 
 | Classifier | Accuracy | Precision | Recall | F1-Score | ROC-AUC | Latency (ms/1k) | Throughput (flows/s) |
 |---|---|---|---|---|---|---|---|
-| Logistic Regression | 0.9900 | 0.9286 | 1.0000 | 0.9630 | 1.0000 | 0.0264 | 37,933 |
-| Decision Tree | 0.9900 | 0.9286 | 1.0000 | 0.9630 | 0.9943 | 0.0056 | 180,013 |
-| Extra Trees | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.2587 | 3,865 |
-| Random Forest (Proposed) | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.1489 | 6,715 |
+| Logistic Regression | 0.9986 | 0.9904 | 1.0000 | 0.9952 | 1.0000 | 0.2186 | 4,573,692 |
+| Decision Tree | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.1273 | 7,855,973 |
+| Extra Trees | 1.0000 | 0.9996 | 1.0000 | 0.9998 | 1.0000 | 2.7935 | 357,978 |
+| Random Forest (Proposed) | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.9223 | 520,198 |
 
 ![Model Comparison](figures/model_comparison.png)
 ![Confusion Matrix](figures/confusion_matrix.png)
@@ -88,12 +88,12 @@
 
 | Model Variant | Features | Accuracy | F1-Score | ROC-AUC | FPR | Latency (ms/1k) | Throughput (flows/s) |
 |---|---|---|---|---|---|---|---|
-| Full (35 features) | 35 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 0.1895 | 5,278 |
-| Top-5 features | 5 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 0.0801 | 12,477 |
-| Top-8 features | 8 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 0.0978 | 10,227 |
-| Top-10 features | 10 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 0.1630 | 6,136 |
-| Top-12 features | 12 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 0.1705 | 5,864 |
-| Top-15 features | 15 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 0.1390 | 7,193 |
+| Full (40 features) | 40 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 4.1179 | 242,843 |
+| Top-5 features | 5 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 2.0701 | 483,062 |
+| Top-8 features | 8 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 2.9681 | 336,911 |
+| Top-10 features | 10 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 4.1060 | 243,548 |
+| Top-12 features | 12 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 2.0081 | 497,979 |
+| Top-15 features | 15 | 1.0000 | 1.0000 | 1.0000 | 0.000000 | 2.5437 | 393,123 |
 
 ![Feature Reduction Trade-off](figures/feature_reduction_tradeoff.png)
 
@@ -103,8 +103,8 @@
 
 - **Local Neighbour Consistency (Median Spearman):** 1.0000
 - **Local Neighbour Consistency (Median Cosine):** 1.0000
-- **Bootstrap Top-8 Jaccard Overlap:** 0.6108
-- **Bootstrap Full Ranking Spearman Correlation:** 0.8555
+- **Bootstrap Top-8 Jaccard Overlap:** 0.5515
+- **Bootstrap Full Ranking Spearman Correlation:** 0.8854
 
 ![Stability Analysis](figures/stability_analysis.png)
 
@@ -114,11 +114,11 @@
 
 | Configuration | Features | Accuracy | F1-Score | ROC-AUC | Latency (ms/1k) | Throughput (flows/s) |
 |---|---|---|---|---|---|---|
-| A1: Raw Unscaled (All Feats, Unweighted) | 68 | 1.0000 | 1.0000 | 1.0000 | 0.2143 | 4,666 |
-| A2: + Min-Max Normalization | 68 | 1.0000 | 1.0000 | 1.0000 | 0.1727 | 5,790 |
-| A3: + Correlation Filter (|r| > 0.90) | 35 | 1.0000 | 1.0000 | 1.0000 | 0.1431 | 6,988 |
-| A4: + Balanced Class Weight (Proposed Full) | 35 | 1.0000 | 1.0000 | 1.0000 | 0.1823 | 5,487 |
-| A5: SHAP Lightweight (Top-8 Feats) | 8 | 1.0000 | 1.0000 | 1.0000 | 0.1572 | 6,360 |
+| A1: Raw Unscaled (All Feats, Unweighted) | 68 | 1.0000 | 1.0000 | 1.0000 | 3.1791 | 314,557 |
+| A2: + Min-Max Normalization | 68 | 1.0000 | 1.0000 | 1.0000 | 2.2799 | 438,615 |
+| A3: + Correlation Filter (|r| > 0.90) | 40 | 1.0000 | 0.9998 | 1.0000 | 2.0275 | 493,213 |
+| A4: + Balanced Class Weight (Proposed Full) | 40 | 1.0000 | 1.0000 | 1.0000 | 2.7168 | 368,081 |
+| A5: SHAP Lightweight (Top-8 Feats) | 8 | 1.0000 | 1.0000 | 1.0000 | 3.0010 | 333,228 |
 
 ![Ablation Study](figures/ablation_study.png)
 
