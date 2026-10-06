@@ -66,6 +66,14 @@ python3 run_pipeline.py          # runs all 9 stages, ~3-6 minutes
 streamlit run dashboard.py       # optional: interactive alert dashboard
 ```
 
+To run the pipeline without opening plot windows (for example, if Tkinter
+reports GUI cleanup errors), use:
+```bash
+python run_pipeline.py --mode 2 --no-gui
+```
+Plots are still saved under `outputs/figures/`; Matplotlib uses a non-GUI
+backend for this run.
+
 **On the real CSE-CIC-IDS2018 dataset:**
 Open `src/run_pipeline.py`, find the `DATA SOURCE CONFIGURATION` block near
 the top, and set:

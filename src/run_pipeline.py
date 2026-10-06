@@ -67,6 +67,11 @@ def safe_show(show_plot=True):
         plt.close("all")
 
 
+def configure_plot_backend(show_gui):
+    if not show_gui:
+        plt.switch_backend("Agg")
+
+
 def plot_dataset_distribution(df: pd.DataFrame, out_path: str, show_plot=True):
     plt.close("all")
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
@@ -95,6 +100,7 @@ def plot_dataset_distribution(df: pd.DataFrame, out_path: str, show_plot=True):
 
 
 def run_full_pipeline(sample_size=100_000, seed=42, show_gui=True):
+    configure_plot_backend(show_gui)
     plt.close("all")
     print("\n" + "=" * 60)
     print(f"EXECUTING FRESH IDS RESEARCH PIPELINE (N={sample_size:,}, SEED={seed})")
@@ -332,8 +338,9 @@ def run_full_pipeline(sample_size=100_000, seed=42, show_gui=True):
     print("=" * 50)
 
 
-def run_live_flow_triage():
+def run_live_flow_triage(show_gui=True):
     """Interactive mode: user selects/enters an input flow to classify and explain dynamically."""
+    configure_plot_backend(show_gui)
     plt.close("all")
     print("\n" + "=" * 60)
     print("LIVE FLOW TRIAGE: DYNAMIC INSPECTION & SHAP EXPLANATION")
@@ -432,7 +439,10 @@ def run_live_flow_triage():
             print(f"  * {feat:<25}: {val:+.4f} ({direction})")
 
         print(f"\nSOC Analyst Summary:\n{exp_result['explanation']}")
-        print("\n-> Generating and displaying live SHAP waterfall visualization on the spot...")
+        if show_gui:
+            print("\n-> Generating and displaying live SHAP waterfall visualization on the spot...")
+        else:
+            print("\n-> Generating live SHAP waterfall visualization...")
 
         # Clear any previous figures before rendering fresh one
         plt.close("all")
@@ -440,7 +450,7 @@ def run_live_flow_triage():
             explainer, X_row, split["feature_cols"],
             str(FIG_DIR / "live_triage_waterfall.png"),
             title=f"Dynamic SHAP Waterfall: {target_name} (Pred: {exp_result['prediction']}, Conf: {exp_result['confidence']*100:.1f}%)",
-            show_plot=True
+            show_plot=show_gui
         )
 
         try:
@@ -463,7 +473,7 @@ def main():
 
     # If CLI arguments passed explicitly, execute directly
     if args.mode == "1":
-        run_live_flow_triage()
+        run_live_flow_triage(show_gui=show_gui)
         return
     elif args.mode == "2":
         run_full_pipeline(sample_size=args.sample_size, show_gui=show_gui)
@@ -490,23 +500,23 @@ def main():
         choice = "1"
 
     if choice == "1":
-        run_live_flow_triage()
+        run_live_flow_triage(show_gui=show_gui)
     elif choice == "2":
         try:
             s_input = input("Enter sample size [default 50,000 for fast interactive / 100,000 for full]: ").strip()
             sample_size = int(s_input.replace(",", "")) if s_input else 50_000
         except (ValueError, EOFError):
             sample_size = 50_000
-        run_full_pipeline(sample_size=sample_size)
+        run_full_pipeline(sample_size=sample_size, show_gui=show_gui)
     elif choice == "3":
         try:
             s_input = input("Enter sample size [default 30,000]: ").strip()
             sample_size = int(s_input.replace(",", "")) if s_input else 30_000
         except (ValueError, EOFError):
             sample_size = 30_000
-        run_full_pipeline(sample_size=sample_size)
+        run_full_pipeline(sample_size=sample_size, show_gui=show_gui)
     else:
-        run_live_flow_triage()
+        run_live_flow_triage(show_gui=show_gui)
 
 
 if __name__ == "__main__":
